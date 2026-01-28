@@ -22,4 +22,14 @@ def create_app(config_class=Config):
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint)
 
+    # CRIAÇÃO AUTOMÁTICA DO BANCO DE DADOS NO RENDER
+    with app.app_context():
+        from app.models import User
+        db.create_all()
+        if not User.query.filter_by(username='admin').first():
+            admin = User(username='admin', is_admin=True)
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+
     return app
