@@ -1,0 +1,81 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2 fw-bold">Bem-vindo ao Painel</h1>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-search text-pink fs-3" style="color: var(--pink-highlight);"></i>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1">Garimpo de Canais</h6>
+                    <h3 class="mb-0">Pesquisar</h3>
+                </div>
+            </div>
+            <p class="mt-3 text-white-50">Encontre vídeos e canais promissores usando filtros avançados.</p>
+            <a href="{{ url_for('main.garimpo') }}" class="btn btn-outline-light btn-sm mt-auto">Acessar Garimpo</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-graph-up-arrow text-pink fs-3" style="color: var(--pink-highlight);"></i>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1">Canais Promissores</h6>
+                    <h3 class="mb-0">Ranking</h3>
+                </div>
+            </div>
+            <p class="mt-3 text-white-50">Veja os canais que estão crescendo rápido com poucos vídeos.</p>
+            <a href="{{ url_for('main.promissores') }}" class="btn btn-outline-light btn-sm mt-auto">Ver Ranking</a>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 p-3 me-3">
+                    <i class="bi bi-gear text-pink fs-3" style="color: var(--pink-highlight);"></i>
+                </div>
+                <div>
+                    <h6 class="text-white-50 mb-1">Configurações</h6>
+                    <h3 class="mb-0">Ajustes</h3>
+                </div>
+            </div>
+            <p class="mt-3 text-white-50">Configure sua API Key do YouTube e preferências do sistema.</p>
+            <a href="{{ url_for('main.configuracoes') }}" class="btn btn-outline-light btn-sm mt-auto">Configurar</a>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4">
+    <h5 class="fw-bold mb-4">Metodologia: Consumidor → Validação → Engenharia Reversa</h5>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="p-3 border border-secondary rounded mb-3">
+                <h6 class="text-pink fw-bold" style="color: var(--pink-highlight);">1. Consumidor</h6>
+                <p class="small text-white-50 mb-0">Identifique o que o público está consumindo agora através de palavras-chave e tendências.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 border border-secondary rounded mb-3">
+                <h6 class="text-pink fw-bold" style="color: var(--pink-highlight);">2. Validação</h6>
+                <p class="small text-white-50 mb-0">Valide se o canal é realmente promissor (poucos inscritos, muitas views, canal novo).</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 border border-secondary rounded mb-3">
+                <h6 class="text-pink fw-bold" style="color: var(--pink-highlight);">3. Engenharia Reversa</h6>
+                <p class="small text-white-50 mb-0">Analise os vídeos de sucesso para replicar a estrutura e estratégia no seu canal.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

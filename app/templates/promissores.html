@@ -1,0 +1,65 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Canais Promissores{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
+    <h1 class="h2 fw-bold">Canais Promissores da Semana</h1>
+    <button class="btn btn-primary btn-sm">
+        <i class="bi bi-arrow-clockwise me-1"></i> Atualizar Semana
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for channel in channels %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <img src="{{ channel.thumbnail }}" class="rounded-circle" width="60" height="60">
+                    <span class="badge badge-promising">POTENCIAL ALTO</span>
+                </div>
+                <h5 class="card-title fw-bold">{{ channel.title }}</h5>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <small class="text-white-50 d-block">Inscritos</small>
+                        <span class="fw-bold">{{ "{:,}".format(channel.subscribers) }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-white-50 d-block">Vídeos</small>
+                        <span class="fw-bold">{{ channel.video_count }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-white-50 d-block">Total Views</small>
+                        <span class="fw-bold">{{ "{:,}".format(channel.view_count) }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-white-50 d-block">Criado em</small>
+                        <span class="fw-bold">{{ channel.created_at.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                </div>
+                <div class="d-grid">
+                    <a href="https://youtube.com/channel/{{ channel.youtube_id }}" target="_blank" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-youtube me-1"></i> Analisar Canal
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent border-top border-secondary py-2">
+                <small class="text-white-50">Identificado em: {{ channel.last_updated.strftime('%d/%m/%Y') }}</small>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card p-5 text-center">
+            <i class="bi bi-search fs-1 text-white-50 mb-3"></i>
+            <h5>Nenhum canal promissor identificado ainda.</h5>
+            <p class="text-white-50">Comece a garimpar vídeos para alimentar o ranking.</p>
+            <div class="mt-3">
+                <a href="{{ url_for('main.garimpo') }}" class="btn btn-primary">Ir para o Garimpo</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Youtube Sem Sofrimento</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: rgb(26, 26, 62);
+            --bg-secondary: rgb(15, 15, 45);
+            --text-color: rgb(255, 255, 255);
+            --pink-highlight: rgb(255, 107, 157);
+            --pink-hover: rgb(255, 80, 140);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-radius: 12px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            color: var(--pink-highlight) !important;
+            font-size: 1.5rem;
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--pink-highlight) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--pink-highlight);
+            border: none;
+            border-radius: 30px;
+            padding: 10px 25px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--pink-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 157, 0.4);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            color: var(--text-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-control, .form-select {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--pink-highlight);
+            color: white;
+            box-shadow: 0 0 0 0.25rem rgba(255, 107, 157, 0.25);
+        }
+
+        .table {
+            color: var(--text-color);
+        }
+
+        .table thead th {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            color: var(--pink-highlight);
+        }
+
+        .table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .badge-promising {
+            background-color: var(--pink-highlight);
+            color: white;
+            font-weight: 700;
+        }
+
+        .sidebar {
+            background-color: var(--bg-secondary);
+            min-height: calc(100vh - 56px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar .nav-link {
+            padding: 15px 20px;
+            margin: 5px 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 107, 157, 0.1);
+        }
+
+        footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 0;
+            margin-top: auto;
+        }
+
+        .social-icon {
+            color: var(--text-color);
+            font-size: 1.5rem;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+        .social-icon:hover {
+            color: var(--pink-highlight);
+        }
+
+        {% block styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+                <i class="bi bi-youtube"></i> Youtube Sem Sofrimento
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <span class="nav-link text-white-50">Olá, {{ current_user.username }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid flex-grow-1">
+        <div class="row">
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+                                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.garimpo' %}active{% endif %}" href="{{ url_for('main.garimpo') }}">
+                                <i class="bi bi-search me-2"></i> Garimpo de Canais
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.promissores' %}active{% endif %}" href="{{ url_for('main.promissores') }}">
+                                <i class="bi bi-graph-up-arrow me-2"></i> Canais Promissores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.configuracoes' %}active{% endif %}" href="{{ url_for('main.configuracoes') }}">
+                                <i class="bi bi-gear me-2"></i> Configurações
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    {% else %}
+        <div class="container flex-grow-1 d-flex flex-column justify-content-center">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} mt-3">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% block auth_content %}{% endblock %}
+        </div>
+    {% endif %}
+
+    <footer>
+        <div class="container text-center">
+            <p class="mb-2">Criado por <strong>Gabriela Proença</strong></p>
+            <div class="d-flex justify-content-center">
+                <a href="https://instagram.com/agabiproenca" target="_blank" class="social-icon" title="Instagram @agabiproenca">
+                    <i class="bi bi-instagram"></i>
+                </a>
+                <a href="https://tiktok.com/@agabiestrategista" target="_blank" class="social-icon" title="TikTok @agabiestrategista">
+                    <i class="bi bi-tiktok"></i>
+                </a>
+            </div>
+            <p class="mt-3 mb-0 small text-white-50">&copy; 2026 Youtube Sem Sofrimento. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
