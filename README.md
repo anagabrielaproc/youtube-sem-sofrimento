@@ -53,6 +53,3 @@ Este é um MVP de um SaaS para garimpo de canais e vídeos promissores no YouTub
 
 ---
 Desenvolvido com foco em praticidade e agilidade para criadores de conteúdo.
-"# youtube-sem-sofrimento" 
-"# youtube-sem-sofrimento" 
-"# youtube-sem-sofrimento" 
