@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import User
+from app.models import User, Channel
 from app.utils import search_youtube_videos
 from datetime import datetime, timedelta
 
@@ -51,14 +51,12 @@ def garimpo():
         if not api_key:
             flash('API Key do YouTube não configurada.', 'warning')
         elif query:
-            # Busca Rápida (deep_analysis=False)
             results = search_youtube_videos(
                 api_key=api_key,
                 query=query,
                 published_after=published_after,
                 min_views=min_views,
-                max_views=max_views_val,
-                deep_analysis=False
+                max_views=max_views_val
             )
 
     return render_template('garimpo.html', 
@@ -68,33 +66,13 @@ def garimpo():
                            max_views=max_views,
                            period_btn=period_btn)
 
-@main.route('/promissores', methods=['GET', 'POST'])
+@main.route('/promissores')
 @login_required
 def promissores():
-    results = []
-    query = ""
-    max_subs = 50000
-    
-    if request.method == 'POST':
-        query = request.form.get('query')
-        max_subs = int(request.form.get('max_subs') or 50000)
-        
-        api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
-        if api_key and query:
-            # Análise Profunda (deep_analysis=True)
-            results = search_youtube_videos(
-                api_key=api_key,
-                query=query,
-                max_results=50,
-                max_subs=max_subs,
-                deep_analysis=True
-            )
-            # Filtra apenas as melhores oportunidades
-            results = [r for r in results if r.get('opportunity') in ['Ótima Oportunidade', 'Boa Oportunidade']]
-            # Ordena pelo Score
-            results.sort(key=lambda x: x.get('score', 0), reverse=True)
-
-    return render_template('promissores.html', results=results, query=query, max_subs=max_subs)
+    # Pega todos os canais salvos no banco de dados
+    # Ordena por score (melhores primeiro)
+    channels = Channel.query.order_by(Channel.score.desc()).all()
+    return render_template('promissores.html', channels=channels)
 
 @main.route('/configuracoes', methods=['GET', 'POST'])
 @login_required

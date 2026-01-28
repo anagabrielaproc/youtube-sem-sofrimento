@@ -24,7 +24,7 @@ def create_app(config_class=Config):
 
     # CRIAÇÃO AUTOMÁTICA DO BANCO DE DADOS NO RENDER
     with app.app_context():
-        from app.models import User
+        from app.models import User, Channel
         db.create_all()
         if not User.query.filter_by(username='admin').first():
             admin = User(username='admin', is_admin=True)
@@ -32,4 +32,5 @@ def create_app(config_class=Config):
             db.session.add(admin)
             db.session.commit()
 
+    return app
     return app

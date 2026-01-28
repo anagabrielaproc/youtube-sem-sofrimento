@@ -12,6 +12,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    youtube_api_key = db.Column(db.String(255))
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -36,3 +37,7 @@ class Channel(db.Model):
     created_at = db.Column(db.DateTime)
     is_promising = db.Column(db.Boolean, default=False)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Novos campos para a planilha estratégica
+    score = db.Column(db.Float, default=0.0)
+    opportunity_label = db.Column(db.String(50))
