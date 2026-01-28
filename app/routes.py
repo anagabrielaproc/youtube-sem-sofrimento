@@ -23,16 +23,12 @@ def dashboard():
 def garimpo():
     results = []
     query = ""
-    min_subs = 0
-    max_subs = ""
     min_views = 0
     max_views = ""
     period_btn = ""
 
     if request.method == 'POST':
         query = request.form.get('query')
-        min_subs = int(request.form.get('min_subs') or 0)
-        max_subs = request.form.get('max_subs')
         min_views = int(request.form.get('min_views') or 0)
         max_views = request.form.get('max_views')
         period_btn = request.form.get('period_btn')
@@ -49,51 +45,56 @@ def garimpo():
         elif period_btn == 'year':
             published_after = (now - timedelta(days=365)).isoformat() + 'Z'
 
-        max_subs_val = int(max_subs) if max_subs and max_subs.isdigit() else None
         max_views_val = int(max_views) if max_views and max_views.isdigit() else None
-        
-        # Tenta pegar a API Key das configurações do Render primeiro, depois do usuário
         api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
 
         if not api_key:
             flash('API Key do YouTube não configurada.', 'warning')
         elif query:
+            # Busca Rápida (deep_analysis=False)
             results = search_youtube_videos(
                 api_key=api_key,
                 query=query,
                 published_after=published_after,
                 min_views=min_views,
                 max_views=max_views_val,
-                min_subs=min_subs,
-                max_subs=max_subs_val
+                deep_analysis=False
             )
 
     return render_template('garimpo.html', 
                            results=results, 
                            query=query,
-                           min_subs=min_subs,
-                           max_subs=max_subs,
                            min_views=min_views,
                            max_views=max_views,
                            period_btn=period_btn)
 
-@main.route('/promissores')
+@main.route('/promissores', methods=['GET', 'POST'])
 @login_required
 def promissores():
-    api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
     results = []
-    if api_key:
-        # Busca genérica para canais promissores
-        results = search_youtube_videos(
-            api_key=api_key,
-            query="estratégia youtube",
-            max_results=50,
-            max_subs=50000
-        )
-        # Filtra apenas as melhores oportunidades
-        results = [r for r in results if r.get('opportunity') in ['Ótima Oportunidade', 'Boa Oportunidade']]
+    query = ""
+    max_subs = 50000
+    
+    if request.method == 'POST':
+        query = request.form.get('query')
+        max_subs = int(request.form.get('max_subs') or 50000)
+        
+        api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
+        if api_key and query:
+            # Análise Profunda (deep_analysis=True)
+            results = search_youtube_videos(
+                api_key=api_key,
+                query=query,
+                max_results=50,
+                max_subs=max_subs,
+                deep_analysis=True
+            )
+            # Filtra apenas as melhores oportunidades
+            results = [r for r in results if r.get('opportunity') in ['Ótima Oportunidade', 'Boa Oportunidade']]
+            # Ordena pelo Score
+            results.sort(key=lambda x: x.get('score', 0), reverse=True)
 
-    return render_template('promissores.html', results=results)
+    return render_template('promissores.html', results=results, query=query, max_subs=max_subs)
 
 @main.route('/configuracoes', methods=['GET', 'POST'])
 @login_required

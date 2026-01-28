@@ -12,12 +12,16 @@ def get_youtube_client(api_key):
         print(f"Erro ao criar cliente YouTube: {e}")
         return None
 
-def search_youtube_videos(api_key, query, max_results=50, published_after=None, published_before=None, min_views=0, max_views=None, min_subs=0, max_subs=None):
+def search_youtube_videos(api_key, query, max_results=50, published_after=None, min_views=0, max_views=None, min_subs=0, max_subs=None, deep_analysis=False):
+    """
+    Busca vídeos no YouTube. 
+    Se deep_analysis=False, foca em velocidade (Garimpo).
+    Se deep_analysis=True, busca dados extras do canal (Promissores).
+    """
     youtube = get_youtube_client(api_key)
     if not youtube:
         return []
 
-    # 1. Busca inicial de vídeos
     search_params = {
         'q': query,
         'part': 'snippet',
@@ -27,8 +31,6 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
     }
     if published_after:
         search_params['publishedAfter'] = published_after
-    if published_before:
-        search_params['publishedBefore'] = published_before
 
     try:
         search_response = youtube.search().list(**search_params).execute()
@@ -38,66 +40,90 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
 
         video_ids = [item['id']['videoId'] for item in items]
         
-        # 2. Obter estatísticas dos vídeos em um único lote
+        # Obter estatísticas dos vídeos
         video_response = youtube.videos().list(
-            part='statistics,snippet,contentDetails',
+            part='statistics,snippet',
             id=','.join(video_ids)
         ).execute()
         video_items = video_response.get('items', [])
         
-        channel_ids = list(set([v['snippet']['channelId'] for v in video_items]))
-        
-        # 3. Obter estatísticas dos canais em um único lote
         channels_info = {}
-        for i in range(0, len(channel_ids), 50):
-            batch_ids = channel_ids[i:i+50]
-            channel_response = youtube.channels().list(
-                part='statistics,snippet',
-                id=','.join(batch_ids)
-            ).execute()
-            for c in channel_response.get('items', []):
-                channels_info[c['id']] = c
+        if deep_analysis:
+            # Apenas na análise profunda buscamos dados extras do canal
+            channel_ids = list(set([v['snippet']['channelId'] for v in video_items]))
+            for i in range(0, len(channel_ids), 50):
+                batch_ids = channel_ids[i:i+50]
+                channel_response = youtube.channels().list(
+                    part='statistics,snippet',
+                    id=','.join(batch_ids)
+                ).execute()
+                for c in channel_response.get('items', []):
+                    channels_info[c['id']] = c
+        else:
+            # Na busca rápida, pegamos apenas o básico que já vem no vídeo
+            pass
 
         final_results = []
         for v in video_items:
             v_stats = v.get('statistics', {})
             v_snippet = v.get('snippet', {})
             c_id = v_snippet.get('channelId')
-            c_data = channels_info.get(c_id, {})
-            
-            if not c_data: continue
-            
-            c_stats = c_data.get('statistics', {})
-            c_snippet = c_data.get('snippet', {})
             
             views = int(v_stats.get('viewCount', 0))
-            subs = int(c_stats.get('subscriberCount', 0))
             
-            # Aplicar filtros de pós-processamento solicitados
+            # Filtros de views (sempre disponíveis)
             if min_views > 0 and views < min_views: continue
             if max_views and views > max_views: continue
-            if min_subs > 0 and subs < min_subs: continue
-            if max_subs and subs > max_subs: continue
 
-            # Data de criação do canal
-            channel_published_at = c_snippet.get('publishedAt', '')
-            channel_created_date = 'N/A'
-            if channel_published_at:
-                channel_created_date = datetime.strptime(channel_published_at, '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y')
-
-            final_results.append({
+            res = {
                 'video_id': v['id'],
                 'title': v_snippet.get('title', ''),
                 'thumbnail': v_snippet.get('thumbnails', {}).get('high', {}).get('url', ''),
                 'channel_title': v_snippet.get('channelTitle', ''),
                 'channel_id': c_id,
                 'published_at': datetime.strptime(v_snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y'),
-                'channel_created_at': channel_created_date,
                 'views': views,
-                'subscribers': subs,
                 'formatted_views': format_number(views),
-                'formatted_subs': format_number(subs)
-            })
+            }
+
+            if deep_analysis:
+                c_data = channels_info.get(c_id, {})
+                if not c_data: continue
+                
+                c_stats = c_data.get('statistics', {})
+                c_snippet = c_data.get('snippet', {})
+                subs = int(c_stats.get('subscriberCount', 0))
+                video_count = int(c_stats.get('videoCount', 0))
+                
+                # Filtros de inscritos (apenas na análise profunda)
+                if min_subs > 0 and subs < min_subs: continue
+                if max_subs and subs > max_subs: continue
+
+                # Lógica de Oportunidade
+                channel_published_at = c_snippet.get('publishedAt', '')
+                opportunity = "Saturado"
+                opportunity_color = "#6c757d"
+                if channel_published_at:
+                    created_dt = datetime.strptime(channel_published_at, '%Y-%m-%dT%H:%M:%SZ')
+                    days_old = (datetime.utcnow() - created_dt).days
+                    if days_old <= 30:
+                        opportunity = "Ótima Oportunidade"
+                        opportunity_color = "#28a745"
+                    elif days_old <= 90:
+                        opportunity = "Boa Oportunidade"
+                        opportunity_color = "#ffc107"
+
+                res.update({
+                    'subscribers': subs,
+                    'formatted_subs': format_number(subs),
+                    'video_count': video_count,
+                    'channel_created_at': created_dt.strftime('%d/%m/%Y') if channel_published_at else 'N/A',
+                    'opportunity': opportunity,
+                    'opportunity_color': opportunity_color,
+                    'score': round((views / subs * 100), 1) if subs > 0 else 0
+                })
+            
+            final_results.append(res)
 
         return final_results
     except Exception as e:
