@@ -17,7 +17,6 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
     if not youtube:
         return []
 
-    # Parâmetros base da busca
     search_params = {
         'q': query,
         'part': 'snippet',
@@ -26,7 +25,6 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
         'order': 'relevance'
     }
 
-    # Adicionar filtros opcionais se fornecidos
     if published_after:
         search_params['publishedAfter'] = published_after
     if published_before:
@@ -37,23 +35,15 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
         search_params['relevanceLanguage'] = relevance_language
 
     try:
-        # 1. Realizar a busca inicial
         search_response = youtube.search().list(**search_params).execute()
-        
         items = search_response.get('items', [])
+        
         if not items:
-            # Se não encontrar nada com os filtros, tenta uma busca mais simples apenas com a query
-            simple_params = {'q': query, 'part': 'snippet', 'type': 'video', 'maxResults': max_results}
-            search_response = youtube.search().list(**simple_params).execute()
-            items = search_response.get('items', [])
-            if not items:
-                return []
-
-        video_ids = [item['id']['videoId'] for item in items if 'videoId' in item['id']]
-        if not video_ids:
             return []
 
-        # 2. Obter detalhes dos vídeos (estatísticas e conteúdo)
+        video_ids = [item['id']['videoId'] for item in items if 'videoId' in item['id']]
+        
+        # Obter estatísticas dos vídeos
         video_response = youtube.videos().list(
             part='statistics,snippet,contentDetails',
             id=','.join(video_ids)
@@ -62,7 +52,7 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
         video_items = video_response.get('items', [])
         channel_ids = list(set([v['snippet']['channelId'] for v in video_items]))
 
-        # 3. Obter detalhes dos canais em lotes
+        # Obter estatísticas dos canais
         channels_info = {}
         for i in range(0, len(channel_ids), 50):
             batch_ids = channel_ids[i:i+50]
@@ -86,87 +76,66 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
             c_stats = c_data.get('statistics', {})
             c_snippet = c_data.get('snippet', {})
             
-            # Extração segura de números
             views = int(v_stats.get('viewCount', 0))
             likes = int(v_stats.get('likeCount', 0))
-            comments = int(v_stats.get('commentCount', 0))
             subs = int(c_stats.get('subscriberCount', 0))
-            total_videos = int(c_stats.get('videoCount', 0))
             
-            # Aplicar filtros de pós-processamento (apenas se os valores forem maiores que zero)
+            # Filtros básicos para não travar a busca
             if min_views > 0 and views < min_views: continue
-            if min_likes > 0 and likes < min_likes: continue
             if min_subs > 0 and subs < min_subs: continue
-            if max_subs is not None and max_subs > 0 and subs > max_subs: continue
+            if max_subs and subs > max_subs: continue
 
-            # Calcular Score (Views / Subs ratio)
+            # Score simples
             score = round((views / subs * 100), 1) if subs > 0 else 0
             
-            # Lógica de Oportunidade baseada na idade do canal
+            # Lógica de Oportunidade
             channel_created_at = c_snippet.get('publishedAt', '')
             opportunity = "Saturado"
-            opportunity_color = "#dc3545" # Vermelho padrão
+            opportunity_color = "#6c757d"
             
             if channel_created_at:
                 created_dt = datetime.strptime(channel_created_at, '%Y-%m-%dT%H:%M:%SZ')
-                now = datetime.utcnow()
-                # Diferença em dias para maior precisão
-                days_old = (now - created_dt).days
-                
-                if days_old <= 30: # Até 1 mês
+                days_old = (datetime.utcnow() - created_dt).days
+                if days_old <= 30:
                     opportunity = "Ótima Oportunidade"
-                    opportunity_color = "#28a745" # Verde
-                elif 30 < days_old <= 90: # 1 a 3 meses
+                    opportunity_color = "#28a745"
+                elif days_old <= 90:
                     opportunity = "Boa Oportunidade"
-                    opportunity_color = "#ffc107" # Amarelo
-                else:
-                    opportunity = "Saturado"
-                    opportunity_color = "#6c757d" # Cinza para saturado
+                    opportunity_color = "#ffc107"
 
             final_results.append({
                 'video_id': v['id'],
-                'title': v_snippet.get('title', 'Sem título'),
+                'title': v_snippet.get('title', ''),
                 'thumbnail': v_snippet.get('thumbnails', {}).get('high', {}).get('url', ''),
-                'channel_title': v_snippet.get('channelTitle', 'Canal Desconhecido'),
+                'channel_title': v_snippet.get('channelTitle', ''),
                 'channel_id': c_id,
-                'published_at': datetime.strptime(v_snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y') if 'publishedAt' in v_snippet else 'N/A',
-                'channel_created_at': datetime.strptime(channel_created_at, '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y') if channel_created_at else 'N/A',
+                'published_at': datetime.strptime(v_snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y'),
                 'views': views,
                 'likes': likes,
-                'comments': comments,
                 'subscribers': subs,
-                'total_videos': total_videos,
                 'duration': format_duration(v_details.get('duration', '')),
                 'score': score,
                 'opportunity': opportunity,
                 'opportunity_color': opportunity_color,
                 'formatted_views': format_number(views),
-                'formatted_likes': format_number(likes),
-                'formatted_comments': format_number(comments),
                 'formatted_subs': format_number(subs)
             })
 
         return final_results
     except Exception as e:
-        print(f"Erro crítico na busca do YouTube: {e}")
+        print(f"Erro: {e}")
         return []
 
 def format_duration(duration_str):
-    if not duration_str: return "00:00"
     try:
         duration = isodate.parse_duration(duration_str)
         total_seconds = int(duration.total_seconds())
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        if hours > 0:
-            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        minutes, seconds = divmod(total_seconds, 60)
         return f"{minutes:02d}:{seconds:02d}"
     except:
         return "00:00"
 
 def format_number(num):
-    if num >= 1000000:
-        return f"{num/1000000:.1f}M"
-    if num >= 1000:
-        return f"{num/1000:.1f}K"
+    if num >= 1000000: return f"{num/1000000:.1f}M"
+    if num >= 1000: return f"{num/1000:.1f}K"
     return str(num)

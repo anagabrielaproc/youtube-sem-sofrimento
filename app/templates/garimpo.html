@@ -2,268 +2,128 @@
 
 {% block title %}Garimpo de Canais - Youtube Sem Sofrimento{% endblock %}
 
-{% block styles %}
-.filter-card {
-    background-color: var(--bg-secondary);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.btn-quick-filter {
-    background-color: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    border-radius: 20px;
-    padding: 5px 15px;
-    font-size: 0.9rem;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    transition: 0.3s;
-}
-.btn-quick-filter:hover, .btn-quick-filter.active {
-    background-color: var(--pink-highlight);
-    border-color: var(--pink-highlight);
-}
-.hint-box {
-    background-color: rgba(255, 165, 0, 0.05);
-    border: 1px solid rgba(255, 165, 0, 0.2);
-    border-radius: 8px;
-    padding: 10px 15px;
-    color: rgba(255, 165, 0, 0.8);
-    font-size: 0.85rem;
-}
-.hover-shadow:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;
-    transition: all 0.3s ease;
-    border-color: var(--pink-highlight) !important;
-}
-.bg-black-50 { background-color: rgba(0,0,0,0.3); }
-{% endblock %}
-
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-    <h1 class="h2 fw-bold"><i class="bi bi-funnel me-2"></i> Filtros de Busca</h1>
-</div>
+<div class="container-fluid py-4">
+    <div class="card bg-dark text-white border-secondary shadow mb-4">
+        <div class="card-body p-4">
+            <h4 class="mb-4"><i class="bi bi-funnel me-2"></i> Filtros de Busca</h4>
+            <form method="POST" id="searchForm">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label">Palavras-chave</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
+                            <input type="text" name="query" class="form-control bg-dark border-secondary text-white" placeholder="Ex: música para dormir" value="{{ query or '' }}" required>
+                        </div>
+                        <div class="alert alert-warning mt-2 py-2 small" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2); color: #ffc107;">
+                            <i class="bi bi-lightbulb me-2"></i><strong>Dica:</strong> Use poucas palavras (1 a 4). Ex: "música para dormir" ao invés de "música; dormir; paz; calma".
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">Idioma</label>
+                        <select name="language" class="form-select bg-dark border-secondary text-white">
+                            <option value="all" {% if language == 'all' %}selected{% endif %}>Todos os idiomas</option>
+                            <option value="pt" {% if language == 'pt' %}selected{% endif %}>Português</option>
+                            <option value="en" {% if language == 'en' %}selected{% endif %}>Inglês</option>
+                            <option value="es" {% if language == 'es' %}selected{% endif %}>Espanhol</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label class="form-label">País</label>
+                        <select name="region" class="form-select bg-dark border-secondary text-white">
+                            <option value="all" {% if region == 'all' %}selected{% endif %}>Todos os países</option>
+                            <option value="BR" {% if region == 'BR' %}selected{% endif %}>Brasil</option>
+                            <option value="US" {% if region == 'US' %}selected{% endif %}>Estados Unidos</option>
+                        </select>
+                    </div>
 
-<div class="card filter-card p-4 mb-4">
-    <form method="POST" id="searchForm">
-        <!-- Palavras-chave -->
-        <div class="mb-3">
-            <label for="query" class="form-label fw-bold">Palavras-chave</label>
-            <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0 text-white-50"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control border-start-0" id="query" name="query" placeholder="Ex: música para dormir" value="{{ query or '' }}" required>
-            </div>
-        </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Inscritos Mín.</label>
+                        <input type="number" name="min_subs" class="form-control bg-dark border-secondary text-white" value="{{ min_subs or 0 }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Inscritos Máx.</label>
+                        <input type="number" name="max_subs" class="form-control bg-dark border-secondary text-white" value="{{ max_subs or '' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Views Mínimas</label>
+                        <input type="number" name="min_views" class="form-control bg-dark border-secondary text-white" value="{{ min_views or 0 }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Resultados</label>
+                        <select name="limit" class="form-select bg-dark border-secondary text-white">
+                            <option value="50" {% if limit == 50 %}selected{% endif %}>50 resultados</option>
+                            <option value="100" {% if limit == 100 %}selected{% endif %}>100 resultados</option>
+                            <option value="200" {% if limit == 200 %}selected{% endif %}>200 resultados</option>
+                        </select>
+                    </div>
 
-        <!-- Dica -->
-        <div class="hint-box mb-4">
-            <i class="bi bi-lightbulb me-2"></i> <strong>Dica:</strong> Use poucas palavras (1 a 4). Ex: "música para dormir" ao invés de "música, dormir, paz, calma"
-        </div>
-
-        <div class="row g-3 mb-4">
-            <!-- Idioma -->
-            <div class="col-md-6">
-                <label for="language" class="form-label fw-bold">Idioma</label>
-                <select class="form-select" id="language" name="language">
-                    <option value="all" {% if language == 'all' %}selected{% endif %}>Todos os idiomas</option>
-                    <option value="pt" {% if language == 'pt' %}selected{% endif %}>Português</option>
-                    <option value="en" {% if language == 'en' %}selected{% endif %}>Inglês</option>
-                    <option value="es" {% if language == 'es' %}selected{% endif %}>Espanhol</option>
-                </select>
-            </div>
-            <!-- País -->
-            <div class="col-md-6">
-                <label for="region" class="form-label fw-bold">País</label>
-                <select class="form-select" id="region" name="region">
-                    <option value="all" {% if region == 'all' %}selected{% endif %}>Todos os países</option>
-                    <option value="BR" {% if region == 'BR' %}selected{% endif %}>Brasil</option>
-                    <option value="US" {% if region == 'US' %}selected{% endif %}>Estados Unidos</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Período de Publicação -->
-        <div class="mb-4">
-            <label class="form-label fw-bold"><i class="bi bi-calendar3 me-2"></i> Período de Publicação</label>
-            <div class="row g-3 mb-3">
-                <div class="col-md-6">
-                    <label for="start_date" class="form-label small text-white-50">Data Inicial</label>
-                    <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date or '' }}">
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary px-4 py-2" style="background: var(--pink-highlight); border: none;">
+                            <i class="bi bi-search me-2"></i>Buscar Vídeos
+                        </button>
+                        <a href="{{ url_for('main.garimpo') }}" class="btn btn-outline-secondary px-4 py-2 ms-2">
+                            <i class="bi bi-x-lg me-2"></i>Limpar Filtros
+                        </a>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <label for="end_date" class="form-label small text-white-50">Data Final</label>
-                    <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date or '' }}">
-                </div>
-            </div>
-            <div class="d-flex flex-wrap align-items-center">
-                <input type="hidden" name="period_btn" id="period_btn" value="{{ period_btn or '' }}">
-                <button type="button" class="btn btn-quick-filter {% if period_btn == 'today' %}active{% endif %}" onclick="setPeriod('today', this)">Hoje</button>
-                <button type="button" class="btn btn-quick-filter {% if period_btn == 'yesterday' %}active{% endif %}" onclick="setPeriod('yesterday', this)">Ontem</button>
-                <button type="button" class="btn btn-quick-filter {% if period_btn == 'week' %}active{% endif %}" onclick="setPeriod('week', this)">Última Semana</button>
-                <button type="button" class="btn btn-quick-filter {% if period_btn == 'month' %}active{% endif %}" onclick="setPeriod('month', this)">Último Mês</button>
-                <button type="button" class="btn btn-quick-filter {% if period_btn == 'year' %}active{% endif %}" onclick="setPeriod('year', this)">Último Ano</button>
-                <button type="button" class="btn btn-link text-white-50 text-decoration-none ms-2" onclick="clearPeriod()">
-                    <i class="bi bi-x-lg me-1"></i> Limpar
-                </button>
-            </div>
-        </div>
-
-        <!-- Filtros Numéricos -->
-        <div class="row g-3 mb-4">
-            <div class="col-md-2">
-                <label for="min_views" class="form-label fw-bold small">Views Mínimas</label>
-                <input type="number" class="form-control" id="min_views" name="min_views" value="{{ min_views or 0 }}">
-            </div>
-            <div class="col-md-2">
-                <label for="min_likes" class="form-label fw-bold small">Likes Mínimos</label>
-                <input type="number" class="form-control" id="min_likes" name="min_likes" value="{{ min_likes or 0 }}">
-            </div>
-            <div class="col-md-2">
-                <label for="min_subs" class="form-label fw-bold small">Inscritos Mín.</label>
-                <input type="number" class="form-control" id="min_subs" name="min_subs" value="{{ min_subs or 0 }}">
-            </div>
-            <div class="col-md-2">
-                <label for="max_subs" class="form-label fw-bold small">Inscritos Máx.</label>
-                <input type="number" class="form-control" id="max_subs" name="max_subs" placeholder="Sem limite" value="{{ max_subs or '' }}">
-            </div>
-            <div class="col-md-4">
-                <label for="limit" class="form-label fw-bold small">Resultados</label>
-                <select class="form-select" id="limit" name="limit">
-                    <option value="20" {% if limit == 20 %}selected{% endif %}>20 resultados</option>
-                    <option value="50" {% if limit == 50 %}selected{% endif %}>50 resultados</option>
-                    <option value="100" {% if limit == 100 %}selected{% endif %}>100 resultados</option>
-                    <option value="200" {% if limit == 200 %}selected{% endif %}>200 resultados</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Botões de Ação -->
-        <div class="d-flex gap-3">
-            <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-search me-2"></i> Buscar Vídeos
-            </button>
-            <button type="button" class="btn btn-outline-light px-4" onclick="clearAll()">
-                <i class="bi bi-x-lg me-2"></i> Limpar Filtros
-            </button>
-        </div>
-    </form>
-</div>
-
-{% if results %}
-<div class="row">
-    <div class="col-12 mb-3 d-flex justify-content-between align-items-center">
-        <h5 class="text-white">{{ results|length }} vídeos encontrados</h5>
-        <div class="btn-group">
-            <button class="btn btn-sm btn-outline-secondary active"><i class="bi bi-graph-up me-1"></i>Score</button>
-            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1"></i>Views</button>
-            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-hand-thumbs-up me-1"></i>Likes</button>
+            </form>
         </div>
     </div>
-    
-    <div class="col-12">
-        {% for item in results %}
-        <div class="card bg-dark text-white border-secondary mb-3 hover-shadow overflow-hidden">
-            <div class="row g-0">
-                <div class="col-md-3 position-relative">
-                    <img src="{{ item.thumbnail }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="Thumbnail">
-                    <span class="position-absolute bottom-0 end-0 bg-black text-white px-2 py-1 m-2 small rounded">{{ item.duration }}</span>
-                    <span class="position-absolute top-0 end-0 m-2 badge rounded-pill" style="background-color: var(--pink-highlight);">
-                        <i class="bi bi-arrow-up-right me-1"></i>{{ item.score }}%
-                    </span>
-                </div>
-                <div class="col-md-9">
-                    <div class="card-body p-3">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title mb-0 text-truncate" style="max-width: 80%;">{{ item.title }}</h5>
-                            <span class="badge" style="background-color: {{ item.opportunity_color }};">{{ item.opportunity }}</span>
-                        </div>
-                        <p class="text-secondary small mb-3">{{ item.channel_title }}</p>
-                        
-                        <div class="row g-3 text-center">
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-eye me-1"></i>Views</div>
+
+    {% if results %}
+    <div class="row">
+        <div class="col-12">
+            <h5 class="text-white mb-4">{{ results|length }} vídeos encontrados</h5>
+            {% for item in results %}
+            <div class="card bg-dark text-white border-secondary mb-3 overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-3 position-relative">
+                        <img src="{{ item.thumbnail }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="Thumbnail">
+                        <span class="position-absolute bottom-0 end-0 bg-black text-white px-2 py-1 m-2 small rounded">{{ item.duration }}</span>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="card-title text-truncate" style="max-width: 80%;">{{ item.title }}</h5>
+                                <span class="badge" style="background-color: {{ item.opportunity_color }};">{{ item.opportunity }}</span>
+                            </div>
+                            <p class="text-secondary small mb-3">{{ item.channel_title }} • {{ item.published_at }}</p>
+                            
+                            <div class="d-flex gap-4 text-center">
+                                <div>
+                                    <div class="small text-secondary">Views</div>
                                     <div class="fw-bold">{{ item.formatted_views }}</div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-hand-thumbs-up me-1"></i>Likes</div>
-                                    <div class="fw-bold">{{ item.formatted_likes }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-chat-dots me-1"></i>Coment.</div>
-                                    <div class="fw-bold">{{ item.formatted_comments }}</div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-people me-1"></i>Inscritos</div>
+                                <div>
+                                    <div class="small text-secondary">Inscritos</div>
                                     <div class="fw-bold">{{ item.formatted_subs }}</div>
                                 </div>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-calendar-event me-1"></i>Publicado</div>
-                                    <div class="fw-bold small">{{ item.published_at }}</div>
+                                <div>
+                                    <div class="small text-secondary">Score</div>
+                                    <div class="fw-bold text-pink" style="color: var(--pink-highlight);">{{ item.score }}%</div>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-2">
-                                <div class="p-2 rounded bg-black-50 border border-secondary">
-                                    <div class="small text-secondary"><i class="bi bi-clock-history me-1"></i>Canal Criado</div>
-                                    <div class="fw-bold small">{{ item.channel_created_at }}</div>
-                                </div>
+                            
+                            <div class="mt-3 d-flex gap-2">
+                                <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank" class="btn btn-sm btn-outline-light">Ver Vídeo</a>
+                                <a href="https://www.youtube.com/channel/{{ item.channel_id }}" target="_blank" class="btn btn-sm btn-outline-light">Ver Canal</a>
                             </div>
-                        </div>
-                        
-                        <div class="mt-3 d-flex justify-content-end gap-2">
-                            <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank" class="btn btn-sm btn-outline-light">
-                                <i class="bi bi-play-fill me-1"></i>Ver Vídeo
-                            </a>
-                            <a href="https://www.youtube.com/channel/{{ item.channel_id }}" target="_blank" class="btn btn-sm btn-outline-light">
-                                <i class="bi bi-person-badge me-1"></i>Ver Canal
-                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
-</div>
-{% elif query %}
-<div class="row">
-    <div class="col-12 text-center py-5">
+    {% elif query %}
+    <div class="text-center py-5">
         <i class="bi bi-search text-secondary display-1"></i>
         <h4 class="text-white mt-3">Nenhum resultado encontrado</h4>
         <p class="text-secondary">Tente ajustar seus filtros ou usar outras palavras-chave.</p>
     </div>
+    {% endif %}
 </div>
-{% endif %}
-{% endblock %}
-
-{% block scripts %}
-<script>
-function setPeriod(period, btn) {
-    document.getElementById('period_btn').value = period;
-    document.querySelectorAll('.btn-quick-filter').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('start_date').value = '';
-    document.getElementById('end_date').value = '';
-}
-
-function clearPeriod() {
-    document.getElementById('period_btn').value = '';
-    document.querySelectorAll('.btn-quick-filter').forEach(b => b.classList.remove('active'));
-    document.getElementById('start_date').value = '';
-    document.getElementById('end_date').value = '';
-}
-
-function clearAll() {
-    clearPeriod();
-    document.getElementById('searchForm').reset();
-}
-</script>
 {% endblock %}
