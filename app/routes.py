@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import SearchHistory, User
+from app.models import User
 from app.utils import search_youtube_videos
 from datetime import datetime, timedelta
 
@@ -23,109 +23,75 @@ def dashboard():
 def garimpo():
     results = []
     query = ""
-    language = "all"
-    region = "all"
-    start_date = ""
-    end_date = ""
-    period_btn = ""
-    min_views = 0
-    min_likes = 0
     min_subs = 0
     max_subs = ""
-    limit = 50
+    min_views = 0
+    max_views = ""
+    period_btn = ""
 
     if request.method == 'POST':
         query = request.form.get('query')
-        language = request.form.get('language', 'all')
-        region = request.form.get('region', 'all')
-        start_date = request.form.get('start_date')
-        end_date = request.form.get('end_date')
-        period_btn = request.form.get('period_btn')
-        min_views = int(request.form.get('min_views') or 0)
-        min_likes = int(request.form.get('min_likes') or 0)
         min_subs = int(request.form.get('min_subs') or 0)
         max_subs = request.form.get('max_subs')
-        limit = int(request.form.get('limit') or 50)
+        min_views = int(request.form.get('min_views') or 0)
+        max_views = request.form.get('max_views')
+        period_btn = request.form.get('period_btn')
 
         published_after = None
-        published_before = None
         now = datetime.utcnow()
 
-        if period_btn:
-            if period_btn == 'today':
-                published_after = now.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
-            elif period_btn == 'yesterday':
-                yesterday = now - timedelta(days=1)
-                published_after = yesterday.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
-                published_before = yesterday.replace(hour=23, minute=59, second=59).isoformat() + 'Z'
-            elif period_btn == 'week':
-                published_after = (now - timedelta(days=7)).isoformat() + 'Z'
-            elif period_btn == 'month':
-                published_after = (now - timedelta(days=30)).isoformat() + 'Z'
-            elif period_btn == 'year':
-                published_after = (now - timedelta(days=365)).isoformat() + 'Z'
-        
-        if start_date:
-            published_after = datetime.strptime(start_date, '%Y-%m-%d').isoformat() + 'Z'
-        if end_date:
-            published_before = datetime.strptime(end_date, '%Y-%m-%d').isoformat() + 'Z'
+        if period_btn == 'today':
+            published_after = now.replace(hour=0, minute=0, second=0).isoformat() + 'Z'
+        elif period_btn == 'week':
+            published_after = (now - timedelta(days=7)).isoformat() + 'Z'
+        elif period_btn == 'month':
+            published_after = (now - timedelta(days=30)).isoformat() + 'Z'
+        elif period_btn == 'year':
+            published_after = (now - timedelta(days=365)).isoformat() + 'Z'
 
         max_subs_val = int(max_subs) if max_subs and max_subs.isdigit() else None
-        api_key = current_app.config.get('YOUTUBE_API_KEY')
+        max_views_val = int(max_views) if max_views and max_views.isdigit() else None
+        
+        # Tenta pegar a API Key das configurações do Render primeiro, depois do usuário
+        api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
 
         if not api_key:
-            flash('API Key do YouTube não configurada nas variáveis de ambiente.', 'warning')
+            flash('API Key do YouTube não configurada.', 'warning')
         elif query:
             results = search_youtube_videos(
                 api_key=api_key,
                 query=query,
-                max_results=limit,
                 published_after=published_after,
-                published_before=published_before,
-                region_code=region,
-                relevance_language=language,
                 min_views=min_views,
-                min_likes=min_likes,
+                max_views=max_views_val,
                 min_subs=min_subs,
                 max_subs=max_subs_val
             )
-            
-            # Ordenar por Score decrescente
-            results.sort(key=lambda x: x['score'], reverse=True)
-            
-            # Salvar histórico
-            history = SearchHistory(query=query, user_id=current_user.id)
-            db.session.add(history)
-            db.session.commit()
 
     return render_template('garimpo.html', 
                            results=results, 
                            query=query,
-                           language=language,
-                           region=region,
-                           start_date=start_date,
-                           end_date=end_date,
-                           period_btn=period_btn,
-                           min_views=min_views,
-                           min_likes=min_likes,
                            min_subs=min_subs,
                            max_subs=max_subs,
-                           limit=limit)
+                           min_views=min_views,
+                           max_views=max_views,
+                           period_btn=period_btn)
 
 @main.route('/promissores')
 @login_required
 def promissores():
-    api_key = current_app.config.get('YOUTUBE_API_KEY')
+    api_key = current_app.config.get('YOUTUBE_API_KEY') or current_user.youtube_api_key
     results = []
     if api_key:
+        # Busca genérica para canais promissores
         results = search_youtube_videos(
             api_key=api_key,
             query="estratégia youtube",
             max_results=50,
-            max_subs=100000
+            max_subs=50000
         )
-        results = [r for r in results if r['opportunity'] in ['Ótima Oportunidade', 'Boa Oportunidade']]
-        results.sort(key=lambda x: x['score'], reverse=True)
+        # Filtra apenas as melhores oportunidades
+        results = [r for r in results if r.get('opportunity') in ['Ótima Oportunidade', 'Boa Oportunidade']]
 
     return render_template('promissores.html', results=results)
 
@@ -133,14 +99,18 @@ def promissores():
 @login_required
 def configuracoes():
     if request.method == 'POST':
-        # Alterar senha do usuário atual
+        api_key = request.form.get('api_key')
         new_password = request.form.get('new_password')
+        
+        if api_key:
+            current_user.youtube_api_key = api_key
+        
         if new_password:
             current_user.set_password(new_password)
-            db.session.commit()
-            flash('Senha alterada com sucesso!', 'success')
-        else:
-            flash('Configurações salvas!', 'success')
+            
+        db.session.commit()
+        flash('Configurações atualizadas com sucesso!', 'success')
+        
     return render_template('configuracoes.html')
 
 @main.route('/admin/usuarios', methods=['GET', 'POST'])
@@ -171,7 +141,6 @@ def admin_usuarios():
 @login_required
 def deletar_usuario(id):
     if not current_user.is_admin:
-        flash('Acesso negado.', 'danger')
         return redirect(url_for('main.dashboard'))
     
     user = User.query.get_or_404(id)

@@ -9,63 +9,51 @@
             <h4 class="mb-4"><i class="bi bi-funnel me-2"></i> Filtros de Busca</h4>
             <form method="POST" id="searchForm">
                 <div class="row g-3">
+                    <!-- Palavra-chave -->
                     <div class="col-md-12">
-                        <label class="form-label">Palavras-chave</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="bi bi-search"></i></span>
-                            <input type="text" name="query" class="form-control bg-dark border-secondary text-white" placeholder="Ex: música para dormir" value="{{ query or '' }}" required>
-                        </div>
-                        <div class="alert alert-warning mt-2 py-2 small" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.2); color: #ffc107;">
-                            <i class="bi bi-lightbulb me-2"></i><strong>Dica:</strong> Use poucas palavras (1 a 4). Ex: "música para dormir" ao invés de "música; dormir; paz; calma".
-                        </div>
+                        <label class="form-label fw-bold">Palavra-chave</label>
+                        <input type="text" name="query" class="form-control bg-dark border-secondary text-white" placeholder="Ex: música para dormir" value="{{ query or '' }}" required>
                     </div>
                     
-                    <div class="col-md-6">
-                        <label class="form-label">Idioma</label>
-                        <select name="language" class="form-select bg-dark border-secondary text-white">
-                            <option value="all" {% if language == 'all' %}selected{% endif %}>Todos os idiomas</option>
-                            <option value="pt" {% if language == 'pt' %}selected{% endif %}>Português</option>
-                            <option value="en" {% if language == 'en' %}selected{% endif %}>Inglês</option>
-                            <option value="es" {% if language == 'es' %}selected{% endif %}>Espanhol</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <label class="form-label">País</label>
-                        <select name="region" class="form-select bg-dark border-secondary text-white">
-                            <option value="all" {% if region == 'all' %}selected{% endif %}>Todos os países</option>
-                            <option value="BR" {% if region == 'BR' %}selected{% endif %}>Brasil</option>
-                            <option value="US" {% if region == 'US' %}selected{% endif %}>Estados Unidos</option>
-                        </select>
+                    <!-- Período de Publicação -->
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Período da Publicação</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <input type="hidden" name="period_btn" id="period_btn" value="{{ period_btn or '' }}">
+                            <button type="button" class="btn btn-outline-light btn-sm {% if period_btn == 'today' %}active{% endif %}" onclick="setPeriod('today', this)">Hoje</button>
+                            <button type="button" class="btn btn-outline-light btn-sm {% if period_btn == 'week' %}active{% endif %}" onclick="setPeriod('week', this)">Última Semana</button>
+                            <button type="button" class="btn btn-outline-light btn-sm {% if period_btn == 'month' %}active{% endif %}" onclick="setPeriod('month', this)">Último Mês</button>
+                            <button type="button" class="btn btn-outline-light btn-sm {% if period_btn == 'year' %}active{% endif %}" onclick="setPeriod('year', this)">Último Ano</button>
+                            <button type="button" class="btn btn-link text-secondary btn-sm" onclick="clearPeriod()">Limpar Período</button>
+                        </div>
                     </div>
 
+                    <!-- Filtros de Inscritos -->
                     <div class="col-md-3">
-                        <label class="form-label">Inscritos Mín.</label>
+                        <label class="form-label small">Mín. de Inscritos</label>
                         <input type="number" name="min_subs" class="form-control bg-dark border-secondary text-white" value="{{ min_subs or 0 }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Inscritos Máx.</label>
-                        <input type="number" name="max_subs" class="form-control bg-dark border-secondary text-white" value="{{ max_subs or '' }}">
+                        <label class="form-label small">Máx. de Inscritos</label>
+                        <input type="number" name="max_subs" class="form-control bg-dark border-secondary text-white" value="{{ max_subs or '' }}" placeholder="Sem limite">
                     </div>
+
+                    <!-- Filtros de Views -->
                     <div class="col-md-3">
-                        <label class="form-label">Views Mínimas</label>
+                        <label class="form-label small">Mín. de Views</label>
                         <input type="number" name="min_views" class="form-control bg-dark border-secondary text-white" value="{{ min_views or 0 }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Resultados</label>
-                        <select name="limit" class="form-select bg-dark border-secondary text-white">
-                            <option value="50" {% if limit == 50 %}selected{% endif %}>50 resultados</option>
-                            <option value="100" {% if limit == 100 %}selected{% endif %}>100 resultados</option>
-                            <option value="200" {% if limit == 200 %}selected{% endif %}>200 resultados</option>
-                        </select>
+                        <label class="form-label small">Máx. de Views</label>
+                        <input type="number" name="max_views" class="form-control bg-dark border-secondary text-white" value="{{ max_views or '' }}" placeholder="Sem limite">
                     </div>
 
                     <div class="col-12 mt-4">
-                        <button type="submit" class="btn btn-primary px-4 py-2" style="background: var(--pink-highlight); border: none;">
+                        <button type="submit" class="btn btn-primary px-4" style="background: var(--pink-highlight); border: none;">
                             <i class="bi bi-search me-2"></i>Buscar Vídeos
                         </button>
-                        <a href="{{ url_for('main.garimpo') }}" class="btn btn-outline-secondary px-4 py-2 ms-2">
-                            <i class="bi bi-x-lg me-2"></i>Limpar Filtros
+                        <a href="{{ url_for('main.garimpo') }}" class="btn btn-outline-secondary px-4 ms-2">
+                            Limpar Tudo
                         </a>
                     </div>
                 </div>
@@ -78,37 +66,45 @@
         <div class="col-12">
             <h5 class="text-white mb-4">{{ results|length }} vídeos encontrados</h5>
             {% for item in results %}
-            <div class="card bg-dark text-white border-secondary mb-3 overflow-hidden">
+            <div class="card bg-dark text-white border-secondary mb-3 overflow-hidden shadow-sm">
                 <div class="row g-0">
-                    <div class="col-md-3 position-relative">
-                        <img src="{{ item.thumbnail }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="Thumbnail">
-                        <span class="position-absolute bottom-0 end-0 bg-black text-white px-2 py-1 m-2 small rounded">{{ item.duration }}</span>
+                    <div class="col-md-3">
+                        <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank">
+                            <img src="{{ item.thumbnail }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="Thumbnail">
+                        </a>
                     </div>
                     <div class="col-md-9">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <h5 class="card-title text-truncate" style="max-width: 80%;">{{ item.title }}</h5>
-                                <span class="badge" style="background-color: {{ item.opportunity_color }};">{{ item.opportunity }}</span>
-                            </div>
-                            <p class="text-secondary small mb-3">{{ item.channel_title }} • {{ item.published_at }}</p>
+                            <h5 class="card-title text-truncate">{{ item.title }}</h5>
+                            <p class="text-secondary mb-3">
+                                <i class="bi bi-person-circle me-1"></i>{{ item.channel_title }} 
+                                <span class="mx-2">•</span> 
+                                <i class="bi bi-calendar-check me-1"></i>Publicado em: {{ item.published_at }}
+                            </p>
                             
-                            <div class="d-flex gap-4 text-center">
-                                <div>
-                                    <div class="small text-secondary">Views</div>
-                                    <div class="fw-bold">{{ item.formatted_views }}</div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-2 rounded bg-black" style="background: rgba(0,0,0,0.3);">
+                                        <div class="small text-secondary">Views</div>
+                                        <div class="fw-bold">{{ item.formatted_views }}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="small text-secondary">Inscritos</div>
-                                    <div class="fw-bold">{{ item.formatted_subs }}</div>
+                                <div class="col-md-4">
+                                    <div class="p-2 rounded bg-black" style="background: rgba(0,0,0,0.3);">
+                                        <div class="small text-secondary">Inscritos</div>
+                                        <div class="fw-bold">{{ item.formatted_subs }}</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div class="small text-secondary">Score</div>
-                                    <div class="fw-bold text-pink" style="color: var(--pink-highlight);">{{ item.score }}%</div>
+                                <div class="col-md-4">
+                                    <div class="p-2 rounded bg-black" style="background: rgba(0,0,0,0.3);">
+                                        <div class="small text-secondary">Canal Criado em</div>
+                                        <div class="fw-bold">{{ item.channel_created_at }}</div>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="mt-3 d-flex gap-2">
-                                <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank" class="btn btn-sm btn-outline-light">Ver Vídeo</a>
+                            <div class="mt-3">
+                                <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank" class="btn btn-sm btn-outline-light me-2">Ver Vídeo</a>
                                 <a href="https://www.youtube.com/channel/{{ item.channel_id }}" target="_blank" class="btn btn-sm btn-outline-light">Ver Canal</a>
                             </div>
                         </div>
@@ -126,4 +122,16 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function setPeriod(period, btn) {
+    document.getElementById('period_btn').value = period;
+    document.querySelectorAll('.btn-outline-light').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+function clearPeriod() {
+    document.getElementById('period_btn').value = '';
+    document.querySelectorAll('.btn-outline-light').forEach(b => b.classList.remove('active'));
+}
+</script>
 {% endblock %}
