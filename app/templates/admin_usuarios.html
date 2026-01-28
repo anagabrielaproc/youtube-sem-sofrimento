@@ -1,0 +1,86 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Administração de Usuários - Youtube Sem Sofrimento{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold text-white"><i class="bi bi-people-fill me-2"></i> Gestão de Usuários</h1>
+    </div>
+
+    <div class="row">
+        <!-- Criar Novo Usuário -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary shadow mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4">Criar Novo Acesso</h5>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Nome de Usuário</label>
+                            <input type="text" name="username" class="form-control bg-dark border-secondary text-white" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Senha</label>
+                            <input type="password" name="password" class="form-control bg-dark border-secondary text-white" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="is_admin" class="form-check-input" id="isAdmin">
+                            <label class="form-check-label" for="isAdmin">Permissão de Administrador</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" style="background: var(--pink-highlight); border: none;">
+                            <i class="bi bi-person-plus me-2"></i>Criar Usuário
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div class="col-md-8">
+            <div class="card bg-dark text-white border-secondary shadow">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead class="border-secondary">
+                                <tr>
+                                    <th class="ps-4">Usuário</th>
+                                    <th>Tipo</th>
+                                    <th class="text-end pe-4">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr class="border-secondary">
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px;">
+                                                <i class="bi bi-person"></i>
+                                            </div>
+                                            {{ user.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                        <span class="badge bg-info">Admin</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Padrão</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        {% if user.username != 'admin' and user.id != current_user.id %}
+                                        <a href="{{ url_for('main.deletar_usuario', id=user.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Tem certeza que deseja remover este acesso?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

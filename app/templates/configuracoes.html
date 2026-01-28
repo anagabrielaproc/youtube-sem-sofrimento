@@ -1,60 +1,71 @@
 {% extends "layout/base.html" %}
 
-{% block title %}Configurações{% endblock %}
+{% block title %}Configurações - Youtube Sem Sofrimento{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-    <h1 class="h2 fw-bold">Configurações do Sistema</h1>
-</div>
+<div class="container-fluid py-4">
+    <h1 class="h2 fw-bold text-white mb-4"><i class="bi bi-gear-fill me-2"></i> Configurações</h1>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card p-4 mb-4">
-            <h5 class="fw-bold mb-4">Identidade Visual</h5>
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Nome do Sistema</label>
-                    <input type="text" class="form-control" value="Youtube Sem Sofrimento" readonly>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Cor Primária</label>
-                        <div class="d-flex align-items-center">
-                            <div class="rounded me-2" style="width: 30px; height: 30px; background-color: var(--pink-highlight);"></div>
-                            <input type="text" class="form-control" value="#FF6B9D" readonly>
+    <div class="row">
+        <!-- Segurança e API -->
+        <div class="col-md-8">
+            <div class="card bg-dark text-white border-secondary shadow mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4"><i class="bi bi-shield-lock me-2"></i>Segurança e Acesso</h5>
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label class="form-label">Alterar Senha</label>
+                            <input type="password" name="new_password" class="form-control bg-dark border-secondary text-white" placeholder="Digite a nova senha para atualizar">
+                            <div class="form-text text-secondary">Deixe em branco se não quiser alterar sua senha atual.</div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Tema</label>
-                        <select class="form-select" disabled>
-                            <option selected>Escuro (Padrão)</option>
-                            <option>Claro</option>
-                        </select>
-                    </div>
+                        
+                        <hr class="border-secondary my-4">
+                        
+                        <h5 class="card-title mb-4"><i class="bi bi-key me-2"></i>API do YouTube</h5>
+                        <div class="mb-3">
+                            <label for="api_key" class="form-label">YouTube API Key</label>
+                            <input type="password" class="form-control bg-dark border-secondary text-white" id="api_key" name="api_key" placeholder="Insira sua chave da API do Google Cloud">
+                            <div class="form-text text-secondary">Sua chave é usada para realizar as buscas diretamente na API do YouTube.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" style="background: var(--pink-highlight); border: none;">
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                <hr class="my-4 border-secondary">
-                <h5 class="fw-bold mb-4">API do YouTube</h5>
-                <div class="mb-3">
-                    <label for="api_key" class="form-label">YouTube API Key</label>
-                    <input type="password" class="form-control" id="api_key" name="api_key" placeholder="Insira sua chave da API do Google Cloud">
-                    <div class="form-text text-white-50">Sua chave é usada para realizar as buscas diretamente na API do YouTube.</div>
-                </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-4">
-            <h5 class="fw-bold mb-3">Ajuda</h5>
-            <p class="small text-white-50">Para obter uma API Key:</p>
-            <ol class="small text-white-50">
-                <li>Acesse o <a href="https://console.cloud.google.com/" target="_blank" class="text-pink" style="color: var(--pink-highlight);">Google Cloud Console</a>.</li>
-                <li>Crie um novo projeto.</li>
-                <li>Ative a "YouTube Data API v3".</li>
-                <li>Vá em "Credenciais" e crie uma "Chave de API".</li>
-            </ol>
+
+        <!-- Ajuda e Info -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-secondary shadow mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3"><i class="bi bi-question-circle me-2"></i>Ajuda</h5>
+                    <p class="small text-secondary">Para obter uma API Key:</p>
+                    <ol class="small text-secondary ps-3">
+                        <li>Acesse o <a href="https://console.cloud.google.com/" target="_blank" style="color: var(--pink-highlight);">Google Cloud Console</a>.</li>
+                        <li>Crie um novo projeto.</li>
+                        <li>Ative a "YouTube Data API v3".</li>
+                        <li>Vá em "Credenciais" e crie uma "Chave de API".</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white border-secondary shadow">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3"><i class="bi bi-info-circle me-2"></i>Sobre</h5>
+                    <div class="mb-2">
+                        <label class="text-secondary small d-block">Versão</label>
+                        <span class="fw-bold">MVP 2.0</span>
+                    </div>
+                    <div>
+                        <label class="text-secondary small d-block">Metodologia</label>
+                        <span class="badge bg-primary">Consumidor → Validação → Engenharia Reversa</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

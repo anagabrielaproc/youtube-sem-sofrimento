@@ -18,7 +18,7 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
         'part': 'snippet',
         'type': 'video',
         'maxResults': max_results,
-        'order': 'viewCount'
+        'order': 'relevance'
     }
 
     if published_after:
@@ -37,84 +37,118 @@ def search_youtube_videos(api_key, query, max_results=50, published_after=None, 
         if not video_ids:
             return []
 
-        # Obter detalhes dos vídeos (views, likes)
+        # Obter detalhes dos vídeos (views, likes, comments, duration)
         video_response = youtube.videos().list(
             part='statistics,snippet,contentDetails',
             id=','.join(video_ids)
         ).execute()
 
-        channels_data = {}
-        for item in video_response.get('items', []):
-            views = int(item['statistics'].get('viewCount', 0))
-            likes = int(item['statistics'].get('likeCount', 0))
-            
-            # Aplicar filtros de vídeo (views e likes mínimos)
-            if views < min_views or likes < min_likes:
-                continue
+        video_items = video_response.get('items', [])
+        channel_ids = list(set([v['snippet']['channelId'] for v in video_items]))
 
-            channel_id = item['snippet']['channelId']
-            if channel_id not in channels_data:
-                channels_data[channel_id] = {
-                    'id': channel_id,
-                    'title': item['snippet']['channelTitle'],
-                    'videos': []
-                }
-            
-            channels_data[channel_id]['videos'].append({
-                'id': item['id'],
-                'title': item['snippet']['title'],
-                'thumbnail': item['snippet']['thumbnails']['medium']['url'],
-                'views': views,
-                'likes': likes,
-                'published_at': item['snippet']['publishedAt']
-            })
-
-        if not channels_data:
-            return []
-
-        # Obter detalhes dos canais (inscritos, total de vídeos)
-        channel_ids = list(channels_data.keys())
-        # A API permite até 50 IDs por vez
-        final_results = []
-        
+        # Obter detalhes dos canais (inscritos, data de criação)
+        channels_info = {}
         for i in range(0, len(channel_ids), 50):
             batch_ids = channel_ids[i:i+50]
             channel_response = youtube.channels().list(
                 part='statistics,snippet',
                 id=','.join(batch_ids)
             ).execute()
+            for c in channel_response.get('items', []):
+                channels_info[c['id']] = c
 
-            for item in channel_response.get('items', []):
-                c_id = item['id']
-                stats = item['statistics']
-                subs = int(stats.get('subscriberCount', 0))
+        final_results = []
+        for v in video_items:
+            v_stats = v['statistics']
+            v_snippet = v['snippet']
+            v_details = v['contentDetails']
+            c_id = v_snippet['channelId']
+            c_data = channels_info.get(c_id, {})
+            
+            if not c_data: continue
+            
+            c_stats = c_data.get('statistics', {})
+            c_snippet = c_data.get('snippet', {})
+            
+            views = int(v_stats.get('viewCount', 0))
+            likes = int(v_stats.get('likeCount', 0))
+            comments = int(v_stats.get('commentCount', 0))
+            subs = int(c_stats.get('subscriberCount', 0))
+            total_videos = int(c_stats.get('videoCount', 0))
+            
+            # Aplicar filtros
+            if views < min_views: continue
+            if likes < min_likes: continue
+            if subs < min_subs: continue
+            if max_subs is not None and subs > max_subs: continue
+
+            # Calcular Score (Views / Subs ratio)
+            score = round((views / subs * 100), 1) if subs > 0 else 0
+            
+            # Lógica de Oportunidade
+            channel_created_at = c_snippet.get('publishedAt', '')
+            opportunity = "Saturado"
+            opportunity_color = "#6c757d" # Cinza
+            
+            if channel_created_at:
+                created_dt = datetime.strptime(channel_created_at, '%Y-%m-%dT%H:%M:%SZ')
+                now = datetime.utcnow()
+                months_old = (now.year - created_dt.year) * 12 + now.month - created_dt.month
                 
-                # Aplicar filtros de canal (inscritos mín/máx)
-                if subs < min_subs:
-                    continue
-                if max_subs is not None and subs > max_subs:
-                    continue
-                
-                channel_info = channels_data[c_id]
-                channel_info['subscribers'] = subs
-                channel_info['total_views'] = int(stats.get('viewCount', 0))
-                channel_info['total_videos'] = int(stats.get('videoCount', 0))
-                channel_info['thumbnail'] = item['snippet']['thumbnails']['default']['url']
-                channel_info['published_at'] = item['snippet']['publishedAt']
-                
-                # Calcular média de views dos vídeos encontrados
-                video_views = [v['views'] for v in channel_info['videos']]
-                channel_info['avg_views_found'] = sum(video_views) / len(video_views) if video_views else 0
-                
-                # Critério de Canal Promissor (ajustado)
-                is_promising = False
-                if channel_info['subscribers'] < 100000 and channel_info['avg_views_found'] > (channel_info['subscribers'] * 0.3):
-                    is_promising = True
-                
-                channel_info['is_promising'] = is_promising
-                final_results.append(channel_info)
+                if months_old <= 1:
+                    opportunity = "Ótima Oportunidade"
+                    opportunity_color = "#28a745" # Verde
+                elif 1 < months_old <= 3:
+                    opportunity = "Boa Oportunidade"
+                    opportunity_color = "#ffc107" # Amarelo
+                else:
+                    opportunity = "Saturado"
+                    opportunity_color = "#dc3545" # Vermelho/Cinza
+
+            final_results.append({
+                'video_id': v['id'],
+                'title': v_snippet['title'],
+                'thumbnail': v_snippet['thumbnails']['high']['url'],
+                'channel_title': v_snippet['channelTitle'],
+                'channel_id': c_id,
+                'published_at': datetime.strptime(v_snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y'),
+                'channel_created_at': datetime.strptime(channel_created_at, '%Y-%m-%dT%H:%M:%SZ').strftime('%d/%m/%Y') if channel_created_at else 'N/A',
+                'views': views,
+                'likes': likes,
+                'comments': comments,
+                'subscribers': subs,
+                'total_videos': total_videos,
+                'duration': format_duration(v_details.get('duration', '')),
+                'score': score,
+                'opportunity': opportunity,
+                'opportunity_color': opportunity_color,
+                'formatted_views': format_number(views),
+                'formatted_likes': format_number(likes),
+                'formatted_comments': format_number(comments),
+                'formatted_subs': format_number(subs)
+            })
 
         return final_results
     except Exception as e:
         print(f"Erro na API do YouTube: {e}")
         return []
+
+def format_duration(duration_str):
+    if not duration_str: return "00:00"
+    try:
+        duration = isodate.parse_duration(duration_str)
+        total_seconds = int(duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
+        return f"{minutes:02d}:{seconds:02d}"
+    except:
+        return "00:00"
+
+def format_number(num):
+    if num >= 1000000:
+        return f"{num/1000000:.1f}M"
+    if num >= 1000:
+        return f"{num/1000:.1f}K"
+    return str(num)

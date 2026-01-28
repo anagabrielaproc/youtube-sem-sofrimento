@@ -1,65 +1,125 @@
 {% extends "layout/base.html" %}
 
-{% block title %}Canais Promissores{% endblock %}
+{% block title %}Canais Promissores - Youtube Sem Sofrimento{% endblock %}
+
+{% block styles %}
+.hover-shadow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5) !important;
+    transition: all 0.3s ease;
+    border-color: var(--pink-highlight) !important;
+}
+.bg-black-50 { background-color: rgba(0,0,0,0.3); }
+.opportunity-header {
+    background: linear-gradient(45deg, #1a1a2e, #16213e);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom border-secondary">
-    <h1 class="h2 fw-bold">Canais Promissores da Semana</h1>
-    <button class="btn btn-primary btn-sm">
-        <i class="bi bi-arrow-clockwise me-1"></i> Atualizar Semana
-    </button>
-</div>
+<div class="container-fluid py-4">
+    <div class="opportunity-header text-center">
+        <h1 class="display-5 fw-bold text-white mb-3">🚀 Canais Promissores</h1>
+        <p class="lead text-secondary mx-auto" style="max-width: 800px;">
+            Identificamos canais que estão performando acima da média em relação ao seu número de inscritos. 
+            Focamos em canais novos com alto potencial de crescimento.
+        </p>
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <span class="badge p-2 px-3" style="background-color: #28a745;"><i class="bi bi-check-circle me-2"></i>Ótima Oportunidade</span>
+            <span class="badge p-2 px-3" style="background-color: #ffc107; color: #000;"><i class="bi bi-star me-2"></i>Boa Oportunidade</span>
+        </div>
+    </div>
 
-<div class="row g-4">
-    {% for channel in channels %}
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <img src="{{ channel.thumbnail }}" class="rounded-circle" width="60" height="60">
-                    <span class="badge badge-promising">POTENCIAL ALTO</span>
-                </div>
-                <h5 class="card-title fw-bold">{{ channel.title }}</h5>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <small class="text-white-50 d-block">Inscritos</small>
-                        <span class="fw-bold">{{ "{:,}".format(channel.subscribers) }}</span>
+    {% if results %}
+    <div class="row">
+        <div class="col-12 mb-3">
+            <h5 class="text-white">{{ results|length }} oportunidades identificadas</h5>
+        </div>
+        
+        <div class="col-12">
+            {% for item in results %}
+            <div class="card bg-dark text-white border-secondary mb-3 hover-shadow overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-md-3 position-relative">
+                        <img src="{{ item.thumbnail }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="Thumbnail">
+                        <span class="position-absolute bottom-0 end-0 bg-black text-white px-2 py-1 m-2 small rounded">{{ item.duration }}</span>
+                        <span class="position-absolute top-0 end-0 m-2 badge rounded-pill" style="background-color: var(--pink-highlight);">
+                            <i class="bi bi-arrow-up-right me-1"></i>{{ item.score }}%
+                        </span>
                     </div>
-                    <div class="col-6">
-                        <small class="text-white-50 d-block">Vídeos</small>
-                        <span class="fw-bold">{{ channel.video_count }}</span>
+                    <div class="col-md-9">
+                        <div class="card-body p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0 text-truncate" style="max-width: 80%;">{{ item.title }}</h5>
+                                <span class="badge" style="background-color: {{ item.opportunity_color }}; {% if item.opportunity == 'Boa Oportunidade' %}color: #000;{% endif %}">{{ item.opportunity }}</span>
+                            </div>
+                            <p class="text-secondary small mb-3">{{ item.channel_title }}</p>
+                            
+                            <div class="row g-3 text-center">
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-eye me-1"></i>Views</div>
+                                        <div class="fw-bold">{{ item.formatted_views }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-hand-thumbs-up me-1"></i>Likes</div>
+                                        <div class="fw-bold">{{ item.formatted_likes }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-chat-dots me-1"></i>Coment.</div>
+                                        <div class="fw-bold">{{ item.formatted_comments }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-people me-1"></i>Inscritos</div>
+                                        <div class="fw-bold">{{ item.formatted_subs }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-calendar-event me-1"></i>Publicado</div>
+                                        <div class="fw-bold small">{{ item.published_at }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-2">
+                                    <div class="p-2 rounded bg-black-50 border border-secondary">
+                                        <div class="small text-secondary"><i class="bi bi-clock-history me-1"></i>Canal Criado</div>
+                                        <div class="fw-bold small">{{ item.channel_created_at }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 d-flex justify-content-end gap-2">
+                                <a href="https://www.youtube.com/watch?v={{ item.video_id }}" target="_blank" class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-play-fill me-1"></i>Ver Vídeo
+                                </a>
+                                <a href="https://www.youtube.com/channel/{{ item.channel_id }}" target="_blank" class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-person-badge me-1"></i>Ver Canal
+                                </a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <small class="text-white-50 d-block">Total Views</small>
-                        <span class="fw-bold">{{ "{:,}".format(channel.view_count) }}</span>
-                    </div>
-                    <div class="col-6">
-                        <small class="text-white-50 d-block">Criado em</small>
-                        <span class="fw-bold">{{ channel.created_at.strftime('%d/%m/%Y') }}</span>
-                    </div>
-                </div>
-                <div class="d-grid">
-                    <a href="https://youtube.com/channel/{{ channel.youtube_id }}" target="_blank" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-youtube me-1"></i> Analisar Canal
-                    </a>
                 </div>
             </div>
-            <div class="card-footer bg-transparent border-top border-secondary py-2">
-                <small class="text-white-50">Identificado em: {{ channel.last_updated.strftime('%d/%m/%Y') }}</small>
-            </div>
+            {% endfor %}
         </div>
     </div>
     {% else %}
-    <div class="col-12">
-        <div class="card p-5 text-center">
-            <i class="bi bi-search fs-1 text-white-50 mb-3"></i>
-            <h5>Nenhum canal promissor identificado ainda.</h5>
-            <p class="text-white-50">Comece a garimpar vídeos para alimentar o ranking.</p>
-            <div class="mt-3">
-                <a href="{{ url_for('main.garimpo') }}" class="btn btn-primary">Ir para o Garimpo</a>
-            </div>
+    <div class="row">
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-rocket-takeoff text-secondary display-1"></i>
+            <h4 class="text-white mt-3">Buscando novas oportunidades...</h4>
+            <p class="text-secondary">Nenhum canal promissor identificado no momento. Tente novamente em instantes.</p>
         </div>
     </div>
-    {% endfor %}
+    {% endif %}
 </div>
 {% endblock %}
